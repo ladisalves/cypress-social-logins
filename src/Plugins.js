@@ -29,6 +29,7 @@ const authenticator = require('otplib').authenticator
  * @param {options.passwordField} string selector for the password field
  * @param {options.passwordSubmitBtn} string selector password submit button
  * @param {options.additionalSteps} function any additional func which may be required for signin step after username and password
+ * @param {options.basicAuth} string base64 encoded string for Authorization header, just for first request
  *
  */
 
@@ -181,14 +182,16 @@ async function baseLoginConnect(
   let page = await browser.newPage()
   let originalPageIndex = 1
   await page.setViewport({width: 1280, height: 800})
-  await page.setExtraHTTPHeaders({
+  const additionalHeaders = {
     'Accept-Language': 'en-USq=0.9,enq=0.8'
-  })
+  }
+  await page.setExtraHTTPHeaders(options.basicAuth ? { ...additionalHeaders, 'Authorization': `Basic ${options.basicAuth}`} : additionalHeaders)
   await page.setUserAgent(
     'Mozilla/5.0 (Windows NT 10.0 Win64 x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36'
   )
 
   await page.goto(options.loginUrl)
+  await page.setExtraHTTPHeaders(additionalHeaders)
   await login({page, options})
 
   // Switch to Popup Window
